@@ -10,15 +10,16 @@ import { Input } from "@/components/ui/input"
 import Image from 'next/image'
 import { updateDocument } from '@/lib/actions/room.actions'
 import Loader from './Loader'
+import ShareModel from './ShareModel'
 
-const CollaborativeRoom = ({ roomId, roomMetadata }: CollaborativeRoomProps) => {
+const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: CollaborativeRoomProps) => {
     // special variable depending whether user has access to editor or not
-    const currentUserType = "editor"
+    // const currentUserType = "editor"
 
     const [documentTitle, setDocumentTitle] = useState(roomMetadata.title);
     const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(false);
-
+ 
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +115,12 @@ const CollaborativeRoom = ({ roomId, roomMetadata }: CollaborativeRoomProps) => 
 
                         <div className='flex w-full flex-1 justify-end gap-2 sm:gap-3'>
                             <ActiveCollaborators />
+                            <ShareModel 
+                                roomId={roomId}
+                                collaborators={users}
+                                creatorId={roomMetadata.creatorId}
+                                currentUserType={currentUserType}
+                            />
 
                             <SignedOut>
                                 <SignInButton />
@@ -124,7 +131,7 @@ const CollaborativeRoom = ({ roomId, roomMetadata }: CollaborativeRoomProps) => 
                         </div>
                     </Header>
                     
-                    <Editor roomId={'test'} currentUserType={'editor'} />
+                    <Editor roomId={roomId} currentUserType={currentUserType} />
                 </div>
             </ClientSideSuspense>
         </RoomProvider>

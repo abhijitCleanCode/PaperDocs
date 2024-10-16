@@ -11,12 +11,12 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import React from 'react';
 
-import { FloatingComposer, FloatingThreads, liveblocksConfig, LiveblocksPlugin, useEditorStatus } from '@liveblocks/react-lexical'
+import { liveblocksConfig, FloatingComposer, FloatingThreads, LiveblocksPlugin, useEditorStatus } from '@liveblocks/react-lexical'
 import Loader from '../Loader';
 
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin'
 import { useThreads } from '@liveblocks/react/suspense';
-// import Comments from '../Comments';
+import Comments from '../Comments';
 // import { DeleteModal } from '../DeleteModal';
 
 // Catch any errors that occur during Lexical updates and log them
@@ -31,6 +31,7 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
   const status = useEditorStatus();
   const { threads } = useThreads();
 
+  // by wraping initialConfig with liveblocksConfig allow us to get to know that where another collaborator is typing
   const initialConfig = liveblocksConfig({
     namespace: 'Editor',
     nodes: [HeadingNode],
@@ -39,7 +40,7 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
       throw error;
     },
     theme: Theme,
-    editable: currentUserType === 'editor',
+    editable: currentUserType === 'editor', // check if user is editor or not
   });
 
   return (
@@ -51,6 +52,7 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
         </div>
 
         <div className="editor-wrapper flex flex-col items-center justify-start">
+          {/* check out the status of our editor */}
           {status === 'not-loaded' || status === 'loading' ? <Loader /> : (
             <div className="editor-inner min-h-[1100px] relative mb-5 h-fit w-full max-w-[800px] shadow-md lg:mb-10">
               <RichTextPlugin
@@ -60,6 +62,7 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
                 placeholder={<Placeholder />}
                 ErrorBoundary={LexicalErrorBoundary}
               />
+              {/* this plugin belong to editor and render only when current user is editor */}
               {currentUserType === 'editor' && <FloatingToolbarPlugin />}
               <HistoryPlugin />
               <AutoFocusPlugin />
@@ -69,7 +72,7 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
           <LiveblocksPlugin>
             <FloatingComposer className="w-[350px]" />
             <FloatingThreads threads={threads} />
-            {/* <Comments /> */}
+            <Comments />
           </LiveblocksPlugin>
         </div>
       </div>

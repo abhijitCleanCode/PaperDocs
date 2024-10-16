@@ -4,6 +4,7 @@
 
 import { clerkClient } from "@clerk/nextjs/server";
 import { parseStringify } from "../utils";
+import { liveblocks } from "../liveblock";
 
 export const getClerkUsers = async ({ userIds }: { userIds: string[] }) => {
     try {
@@ -24,5 +25,29 @@ export const getClerkUsers = async ({ userIds }: { userIds: string[] }) => {
         return parseStringify(sortedUsers);
     } catch (error) {
         console.log('actions :: user.actions.ts :: getClerkUsers :: error while fetching user: ', error);
+    }
+}
+
+export const getDocumentUsers = async ({roomId, currentUser, text}: {roomId: string, currentUser: string, text: string}) => {
+    try {
+        // 1. get access to room info
+        const room = await liveblocks.getRoom(roomId);
+
+        // 2. once we have the room, get access to users within that room
+        const users = Object.keys(room.usersAccesses).filter((email) => email !== currentUser);
+
+        // 3. if text exist, meaning we are trying to mention somebody
+        if (text.length) {
+            const lowerCaseText = text.toLowerCase();
+            // filtering which specific user is mention
+            const filteredUser = users.filter((email: string) => email.toLowerCase().includes(lowerCaseText));
+
+            return parseStringify(filteredUser);
+        }
+
+        // recommend any users, you know how it works, whats app.
+        return parseStringify(users);
+    } catch (error) {
+        console.log('user.actions.ts :: getDocumentUsers :: error fetching document users: ', error);
     }
 }
