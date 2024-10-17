@@ -19,7 +19,7 @@ const UserTypeSelector = ({ userType, setUserType, onClickHandler }: UserTypeSel
 
     return (
         <Select value={userType} onValueChange={(type: UserType) => accessChangeHandler(type)}>
-            <SelectTrigger className="shad-selector">
+            <SelectTrigger className="shad-select">
                 <SelectValue />
             </SelectTrigger>
             <SelectContent className='border-none bg-dark-200'>

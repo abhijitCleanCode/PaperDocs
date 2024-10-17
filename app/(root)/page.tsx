@@ -10,6 +10,8 @@ import AddDocumentBtn from '@/components/AddDocumentBtn'
 import { getDocuments } from '@/lib/actions/room.actions'
 import Link from 'next/link'
 import { dateConverter } from '@/lib/utils'
+import DeleteModel from '@/components/DeleteModel'
+import Notifications from '@/components/Notifications'
 
 const Home = async () => {
   // get the user from the clerk
@@ -23,7 +25,7 @@ const Home = async () => {
     <main className='home-container'>
       <Header className='sticky left-0 top-0'>
         <div className='flex items-center gap-2 lg:gap-4'>
-          Notifications
+          <Notifications />
 
           <SignedIn>
             <UserButton />
@@ -63,6 +65,7 @@ const Home = async () => {
                         <p className='text-sm font-light text-blue-100'>Created About: {dateConverter(createdAt)}</p>
                       </div>
                     </Link>
+                    <DeleteModel roomId={id} />
                   </li>
                 ))
               }

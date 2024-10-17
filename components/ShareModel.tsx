@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { Label } from './ui/label';
 import UserTypeSelector from './UserTypeSelector';
 import Collaborator from './Collaborator';
+import { updateDocumentAccess } from '@/lib/actions/room.actions';
 
 
 const ShareModel = ({ roomId, collaborators, creatorId, currentUserType }: ShareDocumentDialogProps) => {
@@ -31,7 +32,18 @@ const ShareModel = ({ roomId, collaborators, creatorId, currentUserType }: Share
   const [userType, setUserType] = useState<UserType>('viewer')
 
   // handler function to share the document
-  const shareDocumentHandler = async () => { }
+  const shareDocumentHandler = async () => {
+    setLoading(true);
+        
+    await updateDocumentAccess({
+        roomId, 
+        email, 
+        userType: userType as UserType, 
+        updatedBy: user.info,
+    });
+
+    setLoading(false);
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -77,7 +89,7 @@ const ShareModel = ({ roomId, collaborators, creatorId, currentUserType }: Share
             />
           </div>
 
-          <Button type='submit' className='gradient-blue flex gap-1 h-full px-5' disabled={loading}>{loading ? "Sending..." : "Invite"}</Button>
+          <Button type='submit' onClick={shareDocumentHandler} className='gradient-blue flex gap-1 h-full px-5' disabled={loading}>{loading ? "Sending..." : "Invite"}</Button>
         </div>
 
         {/* show all of the collaborators that we have invited so far */}

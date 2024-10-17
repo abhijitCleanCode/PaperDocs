@@ -4,7 +4,8 @@
 import { nanoid } from "nanoid";
 import { liveblocks } from "../liveblock";
 import { revalidatePath } from "next/cache";
-import { parseStringify } from "../utils";
+import { getAccessType, parseStringify } from "../utils";
+import { redirect } from "next/navigation";
 
 export const createDocument = async ({ userId, email }: CreateDocumentParams) => {
     const roomId = nanoid();
@@ -25,7 +26,7 @@ export const createDocument = async ({ userId, email }: CreateDocumentParams) =>
         const room = await liveblocks.createRoom(roomId, {
             metadata,
             usersAccesses,
-            defaultAccesses: ['room:write']
+            defaultAccesses: [] // empty array because we don't want to give write access as default to everybody
         })
 
         revalidatePath('/'); // new document will appear on home screen
@@ -80,5 +81,62 @@ export const getDocuments = async (email: string) => {
         return parseStringify(rooms);
     } catch (error) {
         console.log('Error happen while getting all the rooms', error);
+    }
+}
+
+export const updateDocumentAccess = async ({roomId, email, userType, updatedBy}: ShareDocumentParams) => {
+    try {
+        // this contains a list of all the user access
+        const usersAccesses: RoomAccesses = {
+            [email]: getAccessType(userType) as AccessType,
+        }
+
+        const room = await liveblocks.updateRoom(roomId, { usersAccesses });
+        
+        // if room is updated successfully, then send notification to user
+        if (room) {
+            // TODO: send notification to user
+        }
+
+        // change the share model, by revalidating the path
+        revalidatePath(`/documents/${roomId}`);
+
+        return parseStringify(room);
+    } catch (error) {
+        console.log('server action :: room :: updateDocumentAccess: error happen while updating room: ', error);
+    }
+}
+
+export const removeCollaborator = async ({roomId, email}: {roomId: string, email: string}) => {
+    try {
+        const room = await liveblocks.getRoom(roomId);
+
+        // check if person is the owner
+        if (room.metadata.email === email) {
+            throw new Error("You can not remove yourself from the document");
+        }
+
+        const updateRoom = liveblocks.updateRoom(roomId, {
+            // pass the user accesses by removing the access for a specific email
+            usersAccesses: {
+                [email]: null,
+            }
+        })
+
+        revalidatePath(`/documents/${roomId}`);
+        return parseStringify(updateRoom);
+    } catch (error) {
+        console.log('error happened while removing a collaborator: ', error);
+    }
+}
+
+export const deleteDocument = async (roomId: string) => {
+    try {
+        await liveblocks.deleteRoom(roomId);
+        revalidatePath('/');
+        // u can delete a document from anywhere and redirect to home page
+        redirect('/');
+    } catch (error) {
+        console.log('Error happen while deleting the room, document', error);
     }
 }
